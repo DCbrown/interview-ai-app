@@ -1,8 +1,8 @@
 # InterviewGPT
 
-This chatbot will help you prepare for your next behavioral interview! Just upload your resume pdf and let Bob The Interview start asking you questions.
+This chatbot will help you prepare for your next tech interview! Enter a job description URL, pick the interview type you want to train, upload your resume, and let Bob The Interview start asking you questions.
 
-This project is built using Nextjs. It utilizes the OpenAI GPT4 model for chat completion. The resume pdf is handled by PDF.js which extracts all the text from the document.
+This project is built using Nextjs. It utilizes the OpenAI GPT4 model for chat completion. The resume pdf is handled by PDF.js which extracts all the text from the document. The scrapping of the job description is done using Puppeteer.
 
 <img src="interviewgpt-demo.gif" alt="app demo" width=600>
 
