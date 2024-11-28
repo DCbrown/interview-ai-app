@@ -1,16 +1,16 @@
-import './globals.css'
-import type { Metadata } from 'next'
-import { Analytics } from '@vercel/analytics/react';
+import "./globals.css";
+import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
-  title: 'Codebender AI Template',
-  description: 'Template code for the Codebender AI Project',
-}
+  title: "Interview AI App",
+  description: "An App for practicing interviews",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
@@ -19,5 +19,5 @@ export default function RootLayout({
         <Analytics />
       </body>
     </html>
-  )
+  );
 }
