@@ -16,11 +16,11 @@ const ResumeUploader = () => {
   useEffect(() => {
     const startInterview = async (text: string) => {
       const messageToSend = `INTERVIEW TYPE: ${interviewData.interviewType}
-------------
-RESUME: ${text}
-------------
-JOB DESCRIPTION: ${interviewData.jobDescriptionText}
-------------`;
+      ------------
+      RESUME: ${text}
+      ------------
+      JOB DESCRIPTION: ${interviewData.jobDescriptionText}
+      ------------`;
       await fetchOpenAIResponse(
         [{ role: "user", content: messageToSend }],
         (msg) => setInitialText(msg)
