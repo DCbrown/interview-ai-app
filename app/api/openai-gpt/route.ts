@@ -13,15 +13,16 @@ export const runtime = "edge";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { messages, type } = body;
+    const { messages, type, text } = body;
 
     // Handle text-to-speech requests
     if (type === "speech") {
-      const { text } = body;
       const mp3 = await openai.audio.speech.create({
         model: "tts-1",
         voice: "onyx",
         input: text,
+        speed: 1.0,
+        response_format: "mp3",
       });
 
       // Convert the response to an array buffer
@@ -41,26 +42,15 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content: `CONTEXT: You are an expert interviewer. You specialize in conducting interviews for software engineers.
-          -------
-          FORMAT: Help them prepare for the interview, the interview type they want to prepare for, the job description, and their resume.
-          -------
-          OBJECTIVE: Analyze the data you get and ask questions one by one based on the type of interview the user selected.
-          -------
-          INSTRUCTIONS: 
-          - Start by asking the first question, then after the user finishes replying, ask the next one,
-          wait for the user's reply, and continue like this.
-          - Once you are done asking questions for the interview, provide a feedback to the user to help them improve.`,
+          content: `You are an AI interviewer having a natural conversation with the candidate. Keep responses concise and engaging.`,
         },
-        ...messages,
+        ...(messages || []),
       ],
       stream: true,
-      temperature: 1,
+      temperature: 0.7,
     });
 
-    // Convert the response into a friendly text-stream
     const stream = OpenAIStream(response);
-    // Respond with the stream
     return new StreamingTextResponse(stream);
   } catch (error) {
     console.error("OpenAI API error:", error);
