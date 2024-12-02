@@ -78,6 +78,9 @@ const Chat: React.FC<ChatProps> = ({ initialText, interviewData }) => {
   ]);
   const chatContainer = useRef<HTMLDivElement>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
+  const [isAiSpeaking, setIsAiSpeaking] = useState(false);
+  const [currentAiMessage, setCurrentAiMessage] = useState<string>("");
 
   const scroll = () => {
     const { offsetHeight, scrollHeight, scrollTop } =
@@ -178,31 +181,91 @@ const Chat: React.FC<ChatProps> = ({ initialText, interviewData }) => {
     setIsModalOpen(true);
   };
 
+  const handleVoiceInput = async (text: string) => {
+    setIsProcessingVoice(true);
+    setIsStreaming(true);
+
+    setChatMessages((messages) => [
+      ...messages,
+      {
+        author: userAuthor,
+        text: text,
+        type: "text",
+        timestamp: +new Date(),
+      },
+      {
+        author: aiAuthor,
+        text: "...",
+        type: "text",
+        timestamp: +new Date(),
+      },
+    ]);
+
+    const messageToSend = [...aiMessages, { role: "user", content: text }];
+
+    const response = await fetchOpenAIResponse(messageToSend, (msg) => {
+      setChatMessages((messages) => [
+        ...messages.slice(0, messages.length - 1),
+        {
+          author: aiAuthor,
+          text: msg,
+          type: "text",
+          timestamp: +new Date(),
+        },
+      ]);
+      setCurrentAiMessage(msg);
+    });
+
+    setAiMessages((messages) => [
+      ...messages,
+      { role: "user", content: text },
+      { role: "assistant", content: response },
+    ]);
+
+    setIsStreaming(false);
+    setIsProcessingVoice(false);
+    setIsAiSpeaking(true);
+  };
+
+  useEffect(() => {
+    if (chatMessages.length > 0 && !isStreaming) {
+      const lastMessage = chatMessages[chatMessages.length - 1];
+      if (lastMessage.author.id === aiAuthor.id) {
+        setCurrentAiMessage(lastMessage.text);
+        setIsAiSpeaking(true);
+      }
+    }
+  }, [chatMessages, isStreaming]);
+
+  const handleAiFinishedSpeaking = () => {
+    setIsAiSpeaking(false);
+  };
+
   return (
     <div className="chat">
       {renderResponse()}
-      {!isStreaming && chatMessages.length > 0 && (
-        <div className="audio-player">
-          <p style={{ marginRight: "30px" }}>Interviewer Audio</p>
-          <AppVoice text={chatMessages[chatMessages.length - 1].text} />
-        </div>
-      )}
       <div className="chat-controls">
-        {!isStreaming && chatMessages.length > 0 && (
-          <ChatInputModal
-            isOpen={isModalOpen}
-            onClose={handleModalClose}
-            onSubmit={handleOnSendMessage}
-            input={input}
-            setInput={setInput}
-          />
+        {!isStreaming && (
+          <>
+            <div className="audio-controls">
+              <AppVoice
+                onUserInput={handleVoiceInput}
+                isProcessing={isProcessingVoice}
+                aiMessage={currentAiMessage}
+                isAiSpeaking={isAiSpeaking}
+                onAiFinishedSpeaking={handleAiFinishedSpeaking}
+              />
+            </div>
+            <ChatInputModal
+              isOpen={isModalOpen}
+              onClose={handleModalClose}
+              onSubmit={handleOnSendMessage}
+              input={input}
+              setInput={setInput}
+            />
+          </>
         )}
       </div>
-      {!isStreaming && !isModalOpen && chatMessages.length > 0 && (
-        <div className="voice-controls" style={{ display: "flex" }}>
-          <UserVoice onTranscriptionComplete={handleTranscriptionComplete} />
-        </div>
-      )}
     </div>
   );
 };
