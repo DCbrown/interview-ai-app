@@ -186,9 +186,15 @@ h1 {
 }
 
 .chat {
-  width: 700px;
+  max-width: 700px;
   height: calc(100vh - 200px);
   margin: auto;
+}
+
+@media (max-width: 768px) {
+  .chat {
+    width: 95%;
+  }
 }
 
 .response {
