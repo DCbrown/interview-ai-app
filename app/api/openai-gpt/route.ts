@@ -51,7 +51,8 @@ export async function POST(req: Request) {
           INSTRUCTIONS: 
           - Start by asking the first question, then after the user finishes replying, ask the next one,
           wait for the user's reply, and continue like this.
-          - Once you are done asking questions for the interview, provide a feedback to the user to help them improve.`,
+          - Once you are done asking questions for the interview, provide a feedback to the user to help them improve.
+          - You limit the answers to short answers only`,
         },
         ...(messages),
       ],
