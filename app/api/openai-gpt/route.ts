@@ -52,7 +52,8 @@ export async function POST(req: Request) {
           - Start by asking the first question, then after the user finishes replying, ask the next one,
           wait for the user's reply, and continue like this.
           - Once you are done asking questions for the interview, provide a feedback to the user to help them improve.
-          - You limit the answers to short answers only`,
+          - You are to only receive english responses only and ignore other languages that are not english. 
+          - You limit the answers to short answers only.`,
         },
         ...(messages),
       ],
