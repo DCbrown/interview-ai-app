@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import "./AppVoice.css";
 
 interface AppVoiceProps {
   onUserInput: (text: string) => void;
@@ -148,13 +149,22 @@ const AppVoice = ({
           isProcessing ? "processing" : ""
         } ${isAiSpeaking ? "ai-speaking" : ""}`}
       >
-        {isListening
-          ? "Stop Recording"
-          : isProcessing
-          ? "Processing..."
-          : isAiSpeaking
-          ? "AI Speaking..."
-          : "Start Recording"}
+        {isListening ? (
+          "Stop Recording"
+        ) : isProcessing ? (
+          "Processing..."
+        ) : isAiSpeaking ? (
+          <div className="wave-container">
+            <div className="wave-bars">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="wave-bar" />
+              ))}
+            </div>
+            <span>AI Speaking...</span>
+          </div>
+        ) : (
+          "Start Recording"
+        )}
       </button>
       {error && <p className="error-message">{error}</p>}
     </div>
