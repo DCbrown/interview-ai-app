@@ -19,6 +19,7 @@ const AppVoice = ({
   onAiFinishedSpeaking,
 }: AppVoiceProps) => {
   const [isListening, setIsListening] = useState(false);
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [error, setError] = useState<string>("");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -117,7 +118,13 @@ const AppVoice = ({
         .getTracks()
         .forEach((track) => track.stop());
       setIsListening(false);
+      setIsWaitingForResponse(true);
     }
+  };
+
+  const handleAiFinishedSpeaking = () => {
+    setIsWaitingForResponse(false);
+    onAiFinishedSpeaking();
   };
 
   const processAudioInput = async (audioBlob: Blob) => {
@@ -142,29 +149,29 @@ const AppVoice = ({
 
   return (
     <div className="voice-interaction-container">
+      {isAiSpeaking && (
+        <div className="wave-container">
+          <div className="wave-bars">
+            {[...Array(40)].map((_, i) => (
+              <div key={i} className="wave-bar" />
+            ))}
+          </div>
+        </div>
+      )}
       <button
         onClick={isListening ? stopListening : startListening}
-        disabled={isProcessing || isAiSpeaking}
+        disabled={isProcessing || isAiSpeaking || isWaitingForResponse}
         className={`voice-button ${isListening ? "listening" : ""} ${
-          isProcessing ? "processing" : ""
+          isProcessing || isWaitingForResponse ? "processing" : ""
         } ${isAiSpeaking ? "ai-speaking" : ""}`}
       >
-        {isListening ? (
-          "Stop Recording"
-        ) : isProcessing ? (
-          "Processing..."
-        ) : isAiSpeaking ? (
-          <div className="wave-container">
-            <div className="wave-bars">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="wave-bar" />
-              ))}
-            </div>
-            <span>AI Speaking...</span>
-          </div>
-        ) : (
-          "Start Recording"
-        )}
+        {isListening
+          ? "Stop Recording"
+          : isProcessing || isWaitingForResponse
+          ? "Processing..."
+          : isAiSpeaking
+          ? "AI Speaking..."
+          : "Start Recording"}
       </button>
       {error && <p className="error-message">{error}</p>}
     </div>
