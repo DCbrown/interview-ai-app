@@ -49,10 +49,16 @@ const RequestForm: React.FC<Props> = ({
             pdfDoc.getPage(1).then((page) => {
               page.getTextContent().then((textContent) => {
                 const extractedText = mergeTextContent(textContent);
-                setInterviewData((data) => ({
-                  ...data,
-                  resumeText: extractedText,
-                }));
+                setInterviewData(
+                  (prevData: {
+                    jobDescriptionText: string;
+                    interviewType: string;
+                    resumeText: string;
+                  }) => ({
+                    ...prevData,
+                    resumeText: extractedText,
+                  })
+                );
               });
             });
           },
