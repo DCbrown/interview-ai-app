@@ -1,8 +1,8 @@
 .wave-container {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -10,26 +10,26 @@
   height: 100vh;
   width: 100vw;
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
 }
 
 .wave-bars {
   display: flex;
   align-items: center;
-  justify-content: space-evenly;
+  justify-content: space-between;
   width: 100%;
   height: 60px;
-  padding: 0 20px;
+  padding: 0;
+  gap: 4px;
 }
 
 .wave-bar {
   flex: 1;
   height: 100%;
-  margin: 0 2px;
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   animation: wave 1.2s ease-in-out infinite;
-  max-width: 8px;
+  max-width: none;
 }
 
 /* Create varying delays for more natural wave effect */

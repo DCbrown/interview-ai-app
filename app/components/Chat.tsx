@@ -83,10 +83,8 @@ const Chat: React.FC<ChatProps> = ({ initialText, interviewData }) => {
   const [currentAiMessage, setCurrentAiMessage] = useState<string>("");
 
   const scroll = () => {
-    const { offsetHeight, scrollHeight, scrollTop } =
-      chatContainer.current as HTMLDivElement;
-    if (scrollHeight >= scrollTop + offsetHeight) {
-      chatContainer.current?.scrollTo(0, scrollHeight + 200);
+    if (chatContainer.current) {
+      chatContainer.current.scrollTop = chatContainer.current.scrollHeight;
     }
   };
 
@@ -97,7 +95,7 @@ const Chat: React.FC<ChatProps> = ({ initialText, interviewData }) => {
 
   useEffect(() => {
     scroll();
-  }, [chatMessages]);
+  }, [chatMessages, currentAiMessage]);
 
   const handleOnSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -241,8 +239,21 @@ const Chat: React.FC<ChatProps> = ({ initialText, interviewData }) => {
     setIsAiSpeaking(false);
   };
 
+  useEffect(() => {
+    const scrollToBottom = () => {
+      if (chatContainer.current) {
+        chatContainer.current.scrollTop = chatContainer.current.scrollHeight;
+      }
+    };
+
+    if (!isStreaming) {
+      setTimeout(scrollToBottom, 100); // Small delay to ensure content is rendered
+    }
+  }, [chatMessages, isStreaming]);
+
   return (
     <div className="chat">
+      <h1 className="chat-title">Interviewer Log</h1>
       {renderResponse()}
       <div className="chat-controls">
         {!isStreaming && (

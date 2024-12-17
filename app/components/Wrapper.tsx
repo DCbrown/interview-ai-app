@@ -29,27 +29,18 @@ const ResumeUploader = () => {
 
     if (
       isLoading &&
-      interviewData.resumeText !== "" &&
-      interviewData.resumeText !== undefined
+      interviewData.resumeText &&
+      interviewData.jobDescriptionText
     ) {
       startInterview(interviewData.resumeText).then(() => {
         setIsLoading(false);
         setShowChat(true);
       });
     }
-  }, [interviewData.resumeText]);
+  }, [interviewData.resumeText, interviewData.jobDescriptionText, isLoading]);
 
   return (
     <div className="form-wrapper">
-      {!isLoading ? (
-        <p className="instructions-text">
-          {!showChat
-            ? "Please fill out the form requirements to start the interview process"
-            : "Interviewer Log"}
-        </p>
-      ) : (
-        ""
-      )}
       {!showChat ? (
         <div className="request-form-wrapper">
           {!isLoading ? (
@@ -59,12 +50,9 @@ const ResumeUploader = () => {
               setInterviewData={setInterviewData}
             />
           ) : (
-            ""
-          )}
-          {isLoading && (
-            <div>
-              <div className="loading-spinner"></div>
-              <p className="loading-txt">Loading...</p>
+            <div className="loading-container">
+              <div className="spinner"></div>
+              <p className="loading-text">Loading your interview...</p>
             </div>
           )}
         </div>

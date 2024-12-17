@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import type { TextContent, TextItem } from "pdfjs-dist/types/src/display/api";
 
-type InterviewData = {
-  jobDescriptionText: string;
-  interviewType: string;
-  resumeText: string;
-};
-
 type Props = {
-  interviewData: InterviewData;
-  setInterviewData: React.Dispatch<React.SetStateAction<InterviewData>>;
+  interviewData: {
+    jobDescriptionText: string;
+    interviewType: string;
+    resumeText: string;
+  };
+  setInterviewData: React.Dispatch<React.SetStateAction<any>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
@@ -18,12 +16,13 @@ const RequestForm: React.FC<Props> = ({
   setInterviewData,
   setIsLoading,
 }) => {
-  const { interviewType } = interviewData;
   const [jobDescriptionUrl, setJobDescriptionUrl] = useState("");
-  const [errors, setErrors] = useState<{
-    jobDescription?: string;
-    interviewType?: string;
-  }>({});
+  const [fileName, setFileName] = useState<string>("");
+  const [errors, setErrors] = useState({
+    jobUrl: "",
+    interviewType: "",
+    resume: "",
+  });
 
   const mergeTextContent = (textContent: TextContent) => {
     return textContent.items
@@ -81,92 +80,102 @@ const RequestForm: React.FC<Props> = ({
     }));
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: { jobDescription?: string; interviewType?: string } = {};
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      try {
+        await readResume(file);
+        setErrors((prev) => ({ ...prev, resume: "" }));
+      } catch (error) {
+        setErrors((prev) => ({
+          ...prev,
+          resume: "Error processing resume. Please try again.",
+        }));
+        setFileName("");
+      }
+    }
+  };
+
+  const handleSubmit = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    const newErrors = {
+      jobUrl: "",
+      interviewType: "",
+      resume: "",
+    };
     let isValid = true;
 
-    if (!jobDescriptionUrl.trim()) {
-      newErrors.jobDescription = "Please enter a job description URL";
+    if (!jobDescriptionUrl) {
+      newErrors.jobUrl = "Please enter a job description URL";
       isValid = false;
     }
 
-    if (!interviewType) {
+    if (!interviewData.interviewType) {
       newErrors.interviewType = "Please select an interview type";
       isValid = false;
     }
 
+    if (!interviewData.resumeText) {
+      newErrors.resume = "Please upload your resume";
+      isValid = false;
+    }
+
     setErrors(newErrors);
-    return isValid;
-  };
 
-  const handleResumeUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (!validateForm()) {
-      event.target.value = ""; // Reset file input
-      return;
+    if (isValid) {
+      try {
+        setIsLoading(true);
+        await scrapeJobDescription(jobDescriptionUrl);
+      } catch (error) {
+        setErrors((prev) => ({
+          ...prev,
+          jobUrl:
+            "Error fetching job description. Please check the URL and try again.",
+        }));
+        setIsLoading(false);
+      }
     }
-
-    setIsLoading(true);
-    setInterviewData((data) => ({
-      ...data,
-      resumeText: "",
-    }));
-    const file = event.target.files?.[0];
-    if (!file) {
-      console.error("No file selected");
-      setIsLoading(false);
-      return;
-    }
-    await scrapeJobDescription(jobDescriptionUrl);
-    await readResume(file);
   };
 
   return (
-    <div>
-      <div className="mb-4">
-        <label htmlFor="job-input" className="text-center block w-full">
-          Job Description
-        </label>
+    <div className="form-container">
+      <h1 className="form-title">Start Your Interview Journey</h1>
+      <p className="form-subtitle">
+        Complete the form below to begin the interview process
+      </p>
+
+      <div className="input-group">
+        <label className="input-label">Job Description URL</label>
         <input
-          className={`input-style text-center placeholder:text-center ${
-            errors.jobDescription ? "border-red-500" : ""
-          }`}
-          name="job-input"
           type="url"
-          placeholder="Drop the url here"
+          className={`input-field ${errors.jobUrl ? "error" : ""}`}
+          placeholder="Paste the job URL here"
           value={jobDescriptionUrl}
           onChange={(e) => {
             setJobDescriptionUrl(e.target.value);
-            setErrors((prev) => ({ ...prev, jobDescription: undefined }));
+            if (e.target.value) {
+              setErrors((prev) => ({ ...prev, jobUrl: "" }));
+            }
           }}
-          style={{ textAlign: "center" }}
         />
-        {errors.jobDescription && (
-          <p className="text-red-500 text-sm mt-1 text-center">
-            {errors.jobDescription}
-          </p>
-        )}
+        {errors.jobUrl && <p className="error-message">{errors.jobUrl}</p>}
       </div>
 
-      <div className="mb-4">
-        <label htmlFor="interview-type" className="text-center block w-full">
-          Interview Type
-        </label>
+      <div className="input-group">
+        <label className="input-label">Interview Type</label>
         <select
-          className={`input-style text-center ${
-            errors.interviewType ? "border-red-500" : ""
-          }`}
-          name="interview-type"
-          value={interviewType}
+          className={`select-field ${errors.interviewType ? "error" : ""}`}
+          value={interviewData.interviewType}
           onChange={(e) => {
-            setInterviewData((data) => ({
-              ...data,
+            setInterviewData((prev) => ({
+              ...prev,
               interviewType: e.target.value,
             }));
-            setErrors((prev) => ({ ...prev, interviewType: undefined }));
+            if (e.target.value) {
+              setErrors((prev) => ({ ...prev, interviewType: "" }));
+            }
           }}
-          style={{ textAlign: "center" }}
         >
           <option value="">Select Interview Type</option>
           <option value="behavioral">Behavioral</option>
@@ -174,13 +183,11 @@ const RequestForm: React.FC<Props> = ({
           <option value="project">Project</option>
         </select>
         {errors.interviewType && (
-          <p className="text-red-500 text-sm mt-1 text-center">
-            {errors.interviewType}
-          </p>
+          <p className="error-message">{errors.interviewType}</p>
         )}
       </div>
 
-      <div className="file-upload-btn-container">
+      <div className="input-group">
         <input
           type="file"
           id="file-upload"
@@ -188,10 +195,27 @@ const RequestForm: React.FC<Props> = ({
           accept="application/pdf"
           hidden
         />
-        <label htmlFor="file-upload" className="label-style bg-blue-500">
-          Upload Resume
+        <label htmlFor="file-upload" className="upload-button">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          {fileName ? fileName : "Upload Resume"}
         </label>
+        {errors.resume && <p className="error-message">{errors.resume}</p>}
       </div>
+
+      <button onClick={handleSubmit} className="submit-button">
+        Start Interview
+      </button>
     </div>
   );
 };
