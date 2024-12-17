@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import type { TextContent, TextItem } from "pdfjs-dist/types/src/display/api";
 
+interface InterviewData {
+  jobDescriptionText: string;
+  interviewType: string;
+  resumeText: string;
+}
+
 type Props = {
-  interviewData: {
-    jobDescriptionText: string;
-    interviewType: string;
-    resumeText: string;
-  };
-  setInterviewData: React.Dispatch<React.SetStateAction<any>>;
+  interviewData: InterviewData;
+  setInterviewData: React.Dispatch<React.SetStateAction<InterviewData>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
@@ -49,16 +51,10 @@ const RequestForm: React.FC<Props> = ({
             pdfDoc.getPage(1).then((page) => {
               page.getTextContent().then((textContent) => {
                 const extractedText = mergeTextContent(textContent);
-                setInterviewData(
-                  (prevData: {
-                    jobDescriptionText: string;
-                    interviewType: string;
-                    resumeText: string;
-                  }) => ({
-                    ...prevData,
-                    resumeText: extractedText,
-                  })
-                );
+                setInterviewData((data: InterviewData) => ({
+                  ...data,
+                  resumeText: extractedText,
+                }));
               });
             });
           },
